@@ -1,3 +1,9 @@
+import BasicTabs from "../component/Tabs";
+
 export default function Landing() {
-  return <h1> Home Page</h1>;
+  return (
+    <>
+      <BasicTabs></BasicTabs>
+    </>
+  );
 }
