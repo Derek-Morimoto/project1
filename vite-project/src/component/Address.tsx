@@ -11,6 +11,16 @@ interface AddressComponents {
   state: string;
 }
 
+interface WeatherData {
+  name: string;
+  main: {
+    temp: number;
+  };
+  weather: {
+    description: string;
+  }[];
+}
+
 const UserLocation: React.FC = () => {
   const [userLocation, setUserLocation] = useState<UserLocation | null>(null);
   const [address, setAddress] = useState<AddressComponents | null>(null);
@@ -69,10 +79,36 @@ const UserLocation: React.FC = () => {
     }
   }, [userLocation]);
 
+  //Getting Weather at current location
+  const [weatherData, setWeatherData] = useState<WeatherData | null>(null);
+  const apiKey = "db81248686af3c0e32044815746cde22";
+
+  useEffect(() => {
+    const fetchWeatherData = async () => {
+      try {
+        if (address) {
+          const response = await axios.get(
+            `https://api.openweathermap.org/data/2.5/weather?q=${address.city}&appid=${apiKey}&units=metric`
+          );
+          setWeatherData(response.data);
+        }
+      } catch (error) {
+        console.error("Error fetching weather data:", error);
+      }
+    };
+
+    fetchWeatherData();
+  }, [address]);
+
   return address ? (
     <div>
-      <p>City: {address.city}</p>
-      <p>State: {address.state}</p>
+      <p>
+        City: {address.city}, {address.state} <br></br>
+        Lat: {userLocation?.latitude}, Lon {userLocation?.longitude} <br></br>
+        <h2>Weather in {address.city}</h2>
+        <p>Temperature: {weatherData?.main.temp} °C</p>
+        <p>Weather: {weatherData?.weather[0].description}</p>
+      </p>
     </div>
   ) : (
     <div>Loading user location...</div>
