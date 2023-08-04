@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from "react";
 import axios from "axios";
+import { GOOGLE_MAPS_API_KEY, OPENWEATHER_API_KEY } from "../../config";
 
 interface UserLocation {
   latitude: number;
@@ -51,7 +52,7 @@ const UserLocation: React.FC = () => {
   const getUserAddress = async (latitude: number, longitude: number) => {
     try {
       const response = await axios.get(
-        `https://maps.googleapis.com/maps/api/geocode/json?latlng=${latitude},${longitude}&key=AIzaSyCacmRJcKR4bTsQbhE8V2kSQ3e9okKOFSE`
+        `https://maps.googleapis.com/maps/api/geocode/json?latlng=${latitude},${longitude}&key=${GOOGLE_MAPS_API_KEY}`
       );
 
       // Process the response and extract the city and state from the address components
@@ -81,14 +82,13 @@ const UserLocation: React.FC = () => {
 
   //Getting Weather at current location
   const [weatherData, setWeatherData] = useState<WeatherData | null>(null);
-  const apiKey = "db81248686af3c0e32044815746cde22";
 
   useEffect(() => {
     const fetchWeatherData = async () => {
       try {
         if (address) {
           const response = await axios.get(
-            `https://api.openweathermap.org/data/2.5/weather?q=${address.city}&appid=${apiKey}&units=metric`
+            `https://api.openweathermap.org/data/2.5/weather?q=${address.city}&appid=${OPENWEATHER_API_KEY}&units=metric`
           );
           setWeatherData(response.data);
         }
@@ -103,12 +103,12 @@ const UserLocation: React.FC = () => {
   return address ? (
     <div>
       <p>
-        City: {address.city}, {address.state} <br></br>
-        Lat: {userLocation?.latitude}, Lon {userLocation?.longitude} <br></br>
-        <h2>Weather in {address.city}</h2>
-        <p>Temperature: {weatherData?.main.temp} °C</p>
-        <p>Weather: {weatherData?.weather[0].description}</p>
+        City: {address.city}, {address.state} <br />
+        Lat: {userLocation?.latitude}, Lon {userLocation?.longitude} <br />
       </p>
+      <h2>Weather in {address.city}</h2>
+      <p>Temperature: {weatherData?.main.temp} °C</p>
+      <p>Weather: {weatherData?.weather[0].description}</p>
     </div>
   ) : (
     <div>Loading user location...</div>

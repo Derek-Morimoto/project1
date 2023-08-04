@@ -13,7 +13,8 @@ dist-ssr
 *.local
 
 #Api keys
-.env
+config.tsx
+
 
 # Editor directories and files
 .vscode/*
