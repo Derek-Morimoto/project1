@@ -1,8 +1,6 @@
 import React, { useState, useEffect } from "react";
 import axios from "axios";
-
-const OPENWEATHER_API_KEY = "af65945d89a6e5e202f985e92e3d8e77";
-const GOOGLE_MAPS_API_KEY = "YOUR_GOOGLE_MAPS_API_KEY";
+import { GOOGLE_MAPS_API_KEY, OPENWEATHER_API_KEY } from "../../config";
 
 interface UserLocation {
   latitude: number;
