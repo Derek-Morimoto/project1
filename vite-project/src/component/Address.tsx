@@ -1,6 +1,8 @@
 import React, { useState, useEffect } from "react";
 import axios from "axios";
-import { GOOGLE_MAPS_API_KEY, OPENWEATHER_API_KEY } from "../../config";
+
+const OPENWEATHER_API_KEY = "af65945d89a6e5e202f985e92e3d8e77";
+const GOOGLE_MAPS_API_KEY = "YOUR_GOOGLE_MAPS_API_KEY";
 
 interface UserLocation {
   latitude: number;
@@ -12,32 +14,33 @@ interface AddressComponents {
   state: string;
 }
 
+interface Weather {
+  main: string;
+  description: string;
+}
+
 interface WeatherData {
-  name: string;
   main: {
     temp: number;
   };
-  weather: {
-    description: string;
-  }[];
+  weather: Weather[];
 }
 
-interface ForecastData {
+interface Forecast {
   dt_txt: string;
   main: {
     temp: number;
   };
-  weather: {
-    description: string;
-  }[];
+  weather: Weather[];
 }
 
-const UserLocation: React.FC = () => {
+const WeatherApp: React.FC = () => {
   const [userLocation, setUserLocation] = useState<UserLocation | null>(null);
   const [address, setAddress] = useState<AddressComponents | null>(null);
+  const [weatherData, setWeatherData] = useState<WeatherData | null>(null);
+  const [forecastData, setForecastData] = useState<Forecast[]>([]);
 
   useEffect(() => {
-    // Function to fetch user location using Geolocation API
     const getUserLocation = () => {
       if (navigator.geolocation) {
         navigator.geolocation.getCurrentPosition(
@@ -58,40 +61,34 @@ const UserLocation: React.FC = () => {
     getUserLocation();
   }, []);
 
-  // Function to get the user's city and state using Google Maps API
-  const getUserAddress = async (latitude: number, longitude: number) => {
-    try {
-      const response = await axios.get(
-        `https://maps.googleapis.com/maps/api/geocode/json?latlng=${latitude},${longitude}&key=${GOOGLE_MAPS_API_KEY}`
-      );
-
-      // Process the response and extract the city and state from the address components
-      const addressComponents = response.data.results[0].address_components;
-      let city = "";
-      let state = "";
-      for (const component of addressComponents) {
-        if (component.types.includes("locality")) {
-          city = component.long_name;
-        } else if (component.types.includes("administrative_area_level_1")) {
-          state = component.short_name;
-        }
-      }
-
-      setAddress({ city, state });
-    } catch (error) {
-      console.error("Error getting user address:", error);
-    }
-  };
-
   useEffect(() => {
     if (userLocation) {
-      // Call the function to get the user's city and state once we have the location
+      const getUserAddress = async (latitude: number, longitude: number) => {
+        try {
+          const response = await axios.get(
+            `https://maps.googleapis.com/maps/api/geocode/json?latlng=${latitude},${longitude}&key=${GOOGLE_MAPS_API_KEY}`
+          );
+
+          const addressComponents = response.data.results[0].address_components;
+          let city = "";
+          let state = "";
+          for (const component of addressComponents) {
+            if (component.types.includes("locality")) {
+              city = component.long_name;
+            } else if (component.types.includes("administrative_area_level_1")) {
+              state = component.short_name;
+            }
+          }
+
+          setAddress({ city, state });
+        } catch (error) {
+          console.error("Error getting user address:", error);
+        }
+      };
+
       getUserAddress(userLocation.latitude, userLocation.longitude);
     }
   }, [userLocation]);
-
-  //Getting Weather at current location
-  const [weatherData, setWeatherData] = useState<WeatherData | null>(null);
 
   useEffect(() => {
     const fetchWeatherData = async () => {
@@ -110,9 +107,6 @@ const UserLocation: React.FC = () => {
     fetchWeatherData();
   }, [address]);
 
-  //Getting forecast at current location
-  const [forecastData, setForecastData] = useState<ForecastData[]>([]);
-
   useEffect(() => {
     const fetchForecastData = async () => {
       try {
@@ -126,32 +120,57 @@ const UserLocation: React.FC = () => {
         console.error("Error fetching forecast data:", error);
       }
     };
+
     fetchForecastData();
   }, [address]);
 
-  return address ? (
-    <div>
-      <p>
-        City: {address.city}, {address.state} <br />
-        Lat: {userLocation?.latitude}, Lon {userLocation?.longitude} <br />
-      </p>
-      <h2>Weather in {address.city}</h2>
-      <p>Temperature: {weatherData?.main.temp} °C</p>
-      <p>Weather: {weatherData?.weather[0].description}</p>
+  return (
+    <div className="weather-app">
+      {address ? (
+        <div className="location">
+          <h1 className="location-name">
+            {address.city}, {address.state}
+          </h1>
+          <p className="coordinates">
+            Lat: {userLocation?.latitude}, Lon {userLocation?.longitude}
+          </p>
 
-      <h2>5-Day Weather Forecast for {address.city}</h2>
-      {forecastData.map((forecast, index) => (
-        <div key={index}>
-          <p>Date and Time: {forecast.dt_txt}</p>
-          <p>Temperature: {forecast.main.temp} °C</p>
-          <p>Weather: {forecast.weather[0].description}</p>
-          <hr />
+          <div className="current-weather">
+            <h2 className="weather-heading">Current Weather</h2>
+            {weatherData && (
+              <div className="weather-details">
+                <p className="temperature">
+                  {weatherData.main.temp} °C
+                </p>
+                <p className="weather-description">
+                  {weatherData.weather[0].description}
+                </p>
+              </div>
+            )}
+          </div>
+
+          <div className="forecast">
+            <h2 className="weather-heading">5-Day Forecast</h2>
+            <div className="forecast-details">
+              {forecastData.map((forecast, index) => (
+                <div key={index} className="forecast-item">
+                  <p className="date">{forecast.dt_txt}</p>
+                  <p className="temperature">
+                    {forecast.main.temp} °C
+                  </p>
+                  <p className="weather-description">
+                    {forecast.weather[0].description}
+                  </p>
+                </div>
+              ))}
+            </div>
+          </div>
         </div>
-      ))}
+      ) : (
+        <div className="loading">Loading user location...</div>
+      )}
     </div>
-  ) : (
-    <div>Loading user location...</div>
   );
 };
 
-export default UserLocation;
+export default WeatherApp;
